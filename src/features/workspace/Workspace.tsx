@@ -12,6 +12,7 @@ import { ObservationsDashboard } from '../observations/ObservationsDashboard';
 import { ObservationEditor } from '../observations/ObservationEditor';
 import { ParticipantVault } from '../participants/ParticipantVault';
 import { AnalysisBoardView } from '../analysis/AnalysisBoardView';
+import { TriangulationView } from '../triangulation/TriangulationView';
 
 interface WorkspaceProps {
   project: ProjectRecord;
@@ -93,7 +94,7 @@ export function Workspace({ project, db, onClose }: WorkspaceProps) {
           <AnalysisBoardView panelMode="connecting" activeCanvasId={activeCanvasId} onActiveCanvasIdChange={setActiveCanvasId} />
         )}
         {view === 'codebook' && <CodebookView />}
-        {view === 'triangulation' && <ComingSoon label="Triangulation" />}
+        {view === 'triangulation' && <TriangulationView />}
         {view === 'backup' && <ComingSoon label="Backup & Restore" />}
         {view === 'settings' && <SettingsView projectTitle={project.title} />}
       </AppShell>

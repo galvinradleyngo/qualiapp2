@@ -95,3 +95,7 @@ export async function fileGet(db: ProjectDB, key: string): Promise<FileRow | und
 export async function fileClearAll(db: ProjectDB): Promise<void> {
   await db.files.clear();
 }
+
+export async function fileGetAllFiles(db: ProjectDB): Promise<FileRow[]> {
+  return db.files.toArray();
+}
