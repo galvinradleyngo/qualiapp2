@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { importLegacyBackup } from '../../backup/importLegacy';
 import type { ProjectRecord } from '../../storage/registry';
+import { Button } from '../../ui/Button';
+import { Card } from '../../ui/Card';
+import { TextField } from '../../ui/TextField';
 
 interface ImportBackupDialogProps {
   onImported: (project: ProjectRecord) => void;
@@ -44,25 +47,25 @@ export function ImportBackupDialog({ onImported, onCancel }: ImportBackupDialogP
   };
 
   return (
-    <div>
+    <div className="mx-auto max-w-lg px-6 py-12">
       <h1 className="app-title">Import backup</h1>
-      <p className="app-subtitle">This creates a new project — it never overwrites an existing one.</p>
+      <p className="app-subtitle mb-6">This creates a new project — it never overwrites an existing one.</p>
 
-      <div className="panel">
-        <div className="field">
+      <Card>
+        <div className="field mb-4">
           <label htmlFor="qbk-file">Backup file (.qbk)</label>
           <input
             id="qbk-file"
             type="file"
             accept=".qbk"
             onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+            className="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-ink file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-ink/90"
           />
         </div>
 
-        <div className="field">
-          <label htmlFor="qbk-password">Backup password</label>
-          <input
-            id="qbk-password"
+        <div className="mb-4">
+          <TextField
+            label="Backup password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -70,32 +73,36 @@ export function ImportBackupDialog({ onImported, onCancel }: ImportBackupDialogP
           />
         </div>
 
-        <div className="field">
-          <label htmlFor="qbk-title">New project title</label>
-          <input
-            id="qbk-title"
+        <div className="mb-5">
+          <TextField
+            label="New project title"
             value={projectTitle}
             onChange={(e) => setProjectTitle(e.target.value)}
             placeholder="e.g. Fall 2025 Interviews"
           />
         </div>
 
-        {error && <p className="error-text">{error}</p>}
+        {error && <p className="mb-3 text-sm text-red-700">{error}</p>}
         {status && !error && (
-          <p className="progress-text">
-            {status.step} ({status.pct}%)
-          </p>
+          <div className="mb-4">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-alt">
+              <div className="h-full rounded-full bg-accent-600 transition-all" style={{ width: `${status.pct}%` }} />
+            </div>
+            <p className="mt-1.5 text-sm text-ink-soft">
+              {status.step} ({status.pct}%)
+            </p>
+          </div>
         )}
 
-        <div className="btn-row" style={{ marginTop: '0.5rem' }}>
-          <button className="btn" onClick={handleImport} disabled={busy || !file || !projectTitle.trim()}>
+        <div className="flex gap-3">
+          <Button onClick={handleImport} disabled={busy || !file || !projectTitle.trim()}>
             {busy ? 'Importing…' : 'Import'}
-          </button>
-          <button className="btn btn-secondary" onClick={onCancel} disabled={busy}>
+          </Button>
+          <Button variant="secondary" onClick={onCancel} disabled={busy}>
             Cancel
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

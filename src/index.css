@@ -1,147 +1,71 @@
-:root {
-  color-scheme: light;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-surface-sunken text-ink font-sans antialiased;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-ink text-white hover:bg-ink/90;
+  }
+  .btn-secondary {
+    @apply btn border border-border-strong bg-white text-ink hover:bg-surface-alt;
+  }
+  .btn-accent {
+    @apply btn bg-accent-600 text-white hover:bg-accent-700;
+  }
+  .btn-danger {
+    @apply btn border border-red-200 bg-white text-red-700 hover:bg-red-50;
+  }
+  .btn-ghost {
+    @apply btn text-ink-soft hover:bg-surface-alt;
+  }
+  .btn-icon {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-soft transition-colors hover:bg-surface-alt disabled:cursor-not-allowed disabled:opacity-50;
+  }
 
-body {
-  margin: 0;
-  background: #f5f5f4;
-  color: #1c1917;
-}
+  .card {
+    @apply rounded-xl border border-border bg-white p-6 shadow-card;
+  }
 
-#root {
-  min-height: 100vh;
-}
+  .field {
+    @apply flex flex-col gap-1.5;
+  }
+  .field label {
+    @apply text-sm font-semibold text-ink-soft;
+  }
+  .input {
+    @apply w-full rounded-lg border border-border-strong bg-white px-3 py-2 text-sm text-ink placeholder:text-ink-soft/50 focus:border-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-200;
+  }
+  .textarea {
+    @apply input min-h-[6rem] resize-y;
+  }
+  .select {
+    @apply input pr-8;
+  }
 
-.app-shell {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 2.5rem 1.5rem;
-}
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
 
-.app-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
-}
+  .link-btn {
+    @apply cursor-pointer border-none bg-transparent p-0 text-sm text-ink-soft underline decoration-border-strong underline-offset-2 hover:text-ink;
+  }
 
-.app-subtitle {
-  color: #57534e;
-  margin: 0 0 2rem;
-}
-
-.panel {
-  background: #fff;
-  border: 1px solid #e7e5e4;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.project-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.project-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e7e5e4;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #fafaf9;
-}
-
-.project-row:hover {
-  border-color: #a8a29e;
-}
-
-.project-row-meta {
-  font-size: 0.8rem;
-  color: #78716c;
-}
-
-.btn {
-  appearance: none;
-  border: 1px solid #1c1917;
-  background: #1c1917;
-  color: #fff;
-  padding: 0.6rem 1.1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: #fff;
-  color: #1c1917;
-}
-
-.btn-row {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 1rem;
-}
-
-.field label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #44403c;
-}
-
-.field input {
-  padding: 0.55rem 0.7rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 8px;
-  font-size: 0.95rem;
-}
-
-.error-text {
-  color: #b91c1c;
-  font-size: 0.85rem;
-  margin: 0.5rem 0 0;
-}
-
-.hint-text {
-  color: #78716c;
-  font-size: 0.85rem;
-}
-
-.progress-text {
-  color: #57534e;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-}
-
-.link-btn {
-  background: none;
-  border: none;
-  color: #57534e;
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 0.85rem;
-  padding: 0;
+  .app-title {
+    @apply text-2xl font-bold tracking-tight text-ink;
+  }
+  .app-subtitle {
+    @apply mt-1 text-sm text-ink-soft;
+  }
 }

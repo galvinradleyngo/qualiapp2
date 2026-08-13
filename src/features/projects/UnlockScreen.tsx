@@ -2,6 +2,9 @@ import { useState } from 'react';
 import type { ProjectDB } from '../../storage/projectDb';
 import { getRecoveryQuestion, verifyPassword, verifyRecovery, setPassword } from '../../storage/security';
 import type { ProjectRecord } from '../../storage/registry';
+import { Button } from '../../ui/Button';
+import { Card } from '../../ui/Card';
+import { TextField } from '../../ui/TextField';
 
 interface UnlockScreenProps {
   project: ProjectRecord;
@@ -62,52 +65,54 @@ export function UnlockScreen({ project, db, onUnlocked, onCancel }: UnlockScreen
 
   if (recoveryMode) {
     return (
-      <div>
+      <div className="mx-auto max-w-md px-6 py-16">
         <h1 className="app-title">Reset password</h1>
-        <p className="app-subtitle">{project.title}</p>
-        <div className="panel">
+        <p className="app-subtitle mb-6">{project.title}</p>
+        <Card>
           {recoveryQuestion ? (
             <>
-              <div className="field">
-                <label>{recoveryQuestion}</label>
-                <input value={recoveryAnswer} onChange={(e) => setRecoveryAnswer(e.target.value)} />
+              <div className="mb-4">
+                <TextField label={recoveryQuestion} value={recoveryAnswer} onChange={(e) => setRecoveryAnswer(e.target.value)} />
               </div>
-              <div className="field">
-                <label htmlFor="new-password">New password</label>
-                <input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+              <div className="mb-4">
+                <TextField
+                  label="New password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
               </div>
-              {error && <p className="error-text">{error}</p>}
-              <div className="btn-row">
-                <button className="btn" onClick={handleRecover} disabled={busy || !recoveryAnswer.trim()}>
+              {error && <p className="mb-3 text-sm text-red-700">{error}</p>}
+              <div className="flex gap-3">
+                <Button onClick={handleRecover} disabled={busy || !recoveryAnswer.trim()}>
                   Reset password
-                </button>
-                <button className="btn btn-secondary" onClick={() => setRecoveryMode(false)} disabled={busy}>
+                </Button>
+                <Button variant="secondary" onClick={() => setRecoveryMode(false)} disabled={busy}>
                   Back
-                </button>
+                </Button>
               </div>
             </>
           ) : (
             <>
-              <p className="hint-text">No recovery question is set up for this project.</p>
-              <button className="btn btn-secondary" onClick={() => setRecoveryMode(false)}>
+              <p className="mb-3 text-sm text-ink-soft">No recovery question is set up for this project.</p>
+              <Button variant="secondary" onClick={() => setRecoveryMode(false)}>
                 Back
-              </button>
+              </Button>
             </>
           )}
-        </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-md px-6 py-16">
       <h1 className="app-title">{project.title}</h1>
-      <p className="app-subtitle">Enter the project password to continue.</p>
-      <div className="panel">
-        <div className="field">
-          <label htmlFor="unlock-password">Password</label>
-          <input
-            id="unlock-password"
+      <p className="app-subtitle mb-6">Enter the project password to continue.</p>
+      <Card>
+        <div className="mb-4">
+          <TextField
+            label="Password"
             type="password"
             value={password}
             onChange={(e) => setPasswordInput(e.target.value)}
@@ -115,21 +120,21 @@ export function UnlockScreen({ project, db, onUnlocked, onCancel }: UnlockScreen
             autoFocus
           />
         </div>
-        {error && <p className="error-text">{error}</p>}
-        <div className="btn-row">
-          <button className="btn" onClick={handleUnlock} disabled={busy || !password}>
+        {error && <p className="mb-3 text-sm text-red-700">{error}</p>}
+        <div className="flex gap-3">
+          <Button onClick={handleUnlock} disabled={busy || !password}>
             Unlock
-          </button>
-          <button className="btn btn-secondary" onClick={onCancel} disabled={busy}>
+          </Button>
+          <Button variant="secondary" onClick={onCancel} disabled={busy}>
             Back to projects
-          </button>
+          </Button>
         </div>
-        <p style={{ marginTop: '0.75rem' }}>
+        <p className="mt-4">
           <button className="link-btn" onClick={openRecovery}>
             Forgot password?
           </button>
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

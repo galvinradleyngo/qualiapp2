@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import type { ProjectRecord } from '../../storage/registry';
+import { Button } from '../../ui/Button';
+import { Card, EmptyState } from '../../ui/Card';
+import { TextField } from '../../ui/TextField';
 
 interface ProjectSwitcherProps {
   projects: ProjectRecord[];
@@ -21,53 +24,58 @@ export function ProjectSwitcher({ projects, loading, onOpenProject, onCreateProj
   };
 
   return (
-    <div>
-      <h1 className="app-title">QualiApp</h1>
-      <p className="app-subtitle">Pick a project, start a new one, or import a legacy backup.</p>
+    <div className="mx-auto max-w-2xl px-6 py-12">
+      <h1 className="app-title text-3xl">QualiApp</h1>
+      <p className="app-subtitle mb-8">Pick a project, start a new one, or import a legacy backup.</p>
 
-      <div className="panel">
-        <h2 style={{ marginTop: 0, fontSize: '1rem' }}>Projects</h2>
+      <Card title="Projects" className="mb-5">
         {loading ? (
-          <p className="hint-text">Loading…</p>
+          <p className="text-sm text-ink-soft">Loading…</p>
         ) : projects.length === 0 ? (
-          <p className="hint-text">No projects yet. Create one below, or import a backup.</p>
+          <EmptyState title="No projects yet" hint="Create one below, or import a backup." />
         ) : (
-          <ul className="project-list">
+          <ul className="flex flex-col gap-2">
             {projects.map((p) => (
-              <li key={p.id} className="project-row" onClick={() => onOpenProject(p)}>
-                <span>{p.title}</span>
-                <span className="project-row-meta">{new Date(p.updatedAt).toLocaleDateString()}</span>
+              <li key={p.id}>
+                <button
+                  onClick={() => onOpenProject(p)}
+                  className="flex w-full items-center justify-between rounded-lg border border-border bg-surface-alt px-4 py-3 text-left transition-colors hover:border-border-strong hover:bg-white"
+                >
+                  <span className="font-medium text-ink">{p.title}</span>
+                  <span className="text-xs text-ink-soft">{new Date(p.updatedAt).toLocaleDateString()}</span>
+                </button>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </Card>
 
-      <div className="panel">
-        <h2 style={{ marginTop: 0, fontSize: '1rem' }}>New project</h2>
-        <form onSubmit={handleCreate} className="btn-row" style={{ alignItems: 'flex-start' }}>
-          <input
-            aria-label="Project title"
-            placeholder="Project title"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            style={{ flex: 1, padding: '0.6rem 0.7rem', border: '1px solid #d6d3d1', borderRadius: 8 }}
-          />
-          <button type="submit" className="btn" disabled={!newTitle.trim()}>
+      <Card title="New project" className="mb-5">
+        <form onSubmit={handleCreate} className="flex items-end gap-3">
+          <div className="flex-1">
+            <TextField
+              label="Project title"
+              className="sr-only-label"
+              placeholder="e.g. Fall 2025 Interviews"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+            />
+          </div>
+          <Button type="submit" disabled={!newTitle.trim()}>
             Create
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
 
-      <div className="panel">
-        <h2 style={{ marginTop: 0, fontSize: '1rem' }}>Import a backup</h2>
-        <p className="hint-text">
-          Restore a <code>.qbk</code> backup from the old QualiApp. It always becomes a new project.
+      <Card title="Import a backup">
+        <p className="mb-3 text-sm text-ink-soft">
+          Restore a <code className="rounded bg-surface-alt px-1 py-0.5">.qbk</code> backup from the old QualiApp. It
+          always becomes a new project — it never overwrites an existing one.
         </p>
-        <button className="btn btn-secondary" onClick={onImportBackup}>
+        <Button variant="secondary" onClick={onImportBackup}>
           Import .qbk backup…
-        </button>
-      </div>
+        </Button>
+      </Card>
     </div>
   );
 }

@@ -3,7 +3,8 @@ import './index.css';
 import { ProjectSwitcher } from './features/projects/ProjectSwitcher';
 import { ImportBackupDialog } from './features/projects/ImportBackupDialog';
 import { UnlockScreen } from './features/projects/UnlockScreen';
-import { ProjectWorkspace } from './features/projects/ProjectWorkspace';
+import { Workspace } from './features/workspace/Workspace';
+import { ToastProvider } from './ui/Toast';
 import { createProjectRecord, listProjects, touchProjectRecord, type ProjectRecord } from './storage/registry';
 import { openProjectDb } from './storage/projectDb';
 import { hasPassword } from './storage/security';
@@ -48,7 +49,7 @@ function App() {
   };
 
   return (
-    <div className="app-shell">
+    <ToastProvider>
       {screen.kind === 'switcher' && (
         <ProjectSwitcher
           projects={projects}
@@ -70,7 +71,7 @@ function App() {
         />
       )}
       {screen.kind === 'workspace' && (
-        <ProjectWorkspace
+        <Workspace
           project={screen.project}
           db={openProjectDb(screen.project.id)}
           onClose={async () => {
@@ -79,7 +80,7 @@ function App() {
           }}
         />
       )}
-    </div>
+    </ToastProvider>
   );
 }
 
