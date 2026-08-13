@@ -70,7 +70,7 @@ export function FolderSidebar({
               >
                 {f} <span className="text-xs">{countByFolder[f] ?? 0}</span>
               </button>
-              <span className="hidden gap-1 group-hover:flex">
+              <span className="flex gap-1 opacity-0 focus-within:opacity-100 group-hover:opacity-100">
                 <button
                   className="text-xs text-ink-soft hover:text-ink"
                   title="Rename folder"
