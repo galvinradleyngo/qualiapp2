@@ -5,6 +5,7 @@ import { Button } from '../../ui/Button';
 import { AudioPanel } from '../coding/AudioPanel';
 import { CodedTextView } from '../coding/CodedTextView';
 import { CodeForm } from '../coding/CodeForm';
+import { RichTextEditor } from '../coding/RichTextEditor';
 import { TagList } from '../coding/TagList';
 import { getSelectionOffsets } from '../coding/textOffsets';
 
@@ -168,10 +169,9 @@ export function TranscriptEditor({ transcriptId, onBack }: TranscriptEditorProps
       </div>
 
       {mode === 'edit' && (
-        <textarea
-          className="textarea min-h-[420px] w-full text-sm leading-relaxed"
-          value={transcript.content}
-          onChange={(e) => updateTranscript({ content: e.target.value })}
+        <RichTextEditor
+          contentHtml={transcript.contentHtml}
+          onChange={({ content, contentHtml }) => updateTranscript({ content, contentHtml })}
           placeholder="Paste or type the transcript text here…"
         />
       )}

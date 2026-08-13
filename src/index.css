@@ -68,4 +68,15 @@
   .app-subtitle {
     @apply mt-1 text-sm text-ink-soft;
   }
+
+  .rich-text-editor {
+    @apply whitespace-pre-wrap break-words;
+  }
+  .rich-text-editor:empty::before {
+    content: attr(data-placeholder);
+    @apply text-ink-soft/50;
+  }
+  .qa-interviewer {
+    @apply italic text-accent-700;
+  }
 }

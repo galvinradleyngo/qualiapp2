@@ -42,4 +42,16 @@ describe('normalizeLegacyDocs', () => {
   it('is a no-op when docs is undefined', () => {
     expect(() => normalizeLegacyDocs(undefined, [])).not.toThrow();
   });
+
+  it('backfills contentHtml from plain content, HTML-escaped, when missing', () => {
+    const docs: unknown[] = [{ id: 't1', content: 'A <script> & more\nsecond line' }];
+    normalizeLegacyDocs(docs, []);
+    expect((docs[0] as { contentHtml: string }).contentHtml).toBe('A &lt;script&gt; &amp; more<br>second line');
+  });
+
+  it('leaves an existing contentHtml untouched', () => {
+    const docs: unknown[] = [{ id: 't1', content: 'plain', contentHtml: '<b>rich</b>' }];
+    normalizeLegacyDocs(docs, []);
+    expect((docs[0] as { contentHtml: string }).contentHtml).toBe('<b>rich</b>');
+  });
 });

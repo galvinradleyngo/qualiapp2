@@ -5,6 +5,7 @@ import { Button } from '../../ui/Button';
 import { AudioPanel } from '../coding/AudioPanel';
 import { CodedTextView } from '../coding/CodedTextView';
 import { CodeForm } from '../coding/CodeForm';
+import { RichTextEditor } from '../coding/RichTextEditor';
 import { TagList } from '../coding/TagList';
 import { getSelectionOffsets } from '../coding/textOffsets';
 
@@ -148,10 +149,9 @@ export function ObservationEditor({ observationId, onBack }: ObservationEditorPr
       </div>
 
       {mode === 'notes' && (
-        <textarea
-          className="textarea min-h-[420px] w-full"
-          value={observation.content}
-          onChange={(e) => updateObservation({ content: e.target.value })}
+        <RichTextEditor
+          contentHtml={observation.contentHtml}
+          onChange={({ content, contentHtml }) => updateObservation({ content, contentHtml })}
           placeholder="Write field notes here…"
         />
       )}

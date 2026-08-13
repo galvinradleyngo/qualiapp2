@@ -42,6 +42,7 @@ export function TranscriptsDashboard({ onOpenTranscript }: TranscriptsDashboardP
       folder: fields.folder || UNCATEGORIZED,
       modality: '',
       content: '',
+      contentHtml: '',
       notes: '',
       hasAudio: false,
       audioFiles: [],

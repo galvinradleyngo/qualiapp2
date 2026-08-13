@@ -41,6 +41,7 @@ export function ObservationsDashboard({ onOpenObservation }: ObservationsDashboa
       date: fields.date,
       folder: fields.folder || UNCATEGORIZED,
       content: '',
+      contentHtml: '',
       notes: '',
       hasAudio: false,
       audioFiles: [],

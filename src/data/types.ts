@@ -30,6 +30,9 @@ export interface Transcript {
   folder: string;
   modality: Modality;
   content: string;
+  /** Rich-text mirror of `content` for the Edit tab (bold + interviewer-tag spans only —
+   * never inserts/removes characters, so `content` stays valid for coding offsets). */
+  contentHtml: string;
   notes: string;
   hasAudio: boolean;
   audioFiles: AudioFileRef[];
@@ -59,6 +62,8 @@ export interface Observation {
   date: string;
   folder: string;
   content: string;
+  /** Rich-text mirror of `content` for the Field Notes tab — see Transcript.contentHtml. */
+  contentHtml: string;
   notes: string;
   hasAudio: boolean;
   audioFiles: AudioFileRef[];
