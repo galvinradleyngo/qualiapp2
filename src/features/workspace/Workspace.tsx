@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ProjectDB } from '../../storage/projectDb';
 import type { ProjectRecord } from '../../storage/registry';
+import { hasPassword as checkHasPassword } from '../../storage/security';
 import { AppShell, type NavItem } from '../../ui/AppShell';
 import { ProjectStoreProvider } from './ProjectStore';
 import { SettingsView } from './SettingsView';
+import { useIdleLock } from './useIdleLock';
 import { TranscriptsDashboard } from '../transcripts/TranscriptsDashboard';
 import { TranscriptEditor } from '../transcripts/TranscriptEditor';
 import { CodebookView } from '../codebook/CodebookView';
@@ -13,11 +15,13 @@ import { ObservationEditor } from '../observations/ObservationEditor';
 import { ParticipantVault } from '../participants/ParticipantVault';
 import { AnalysisBoardView } from '../analysis/AnalysisBoardView';
 import { TriangulationView } from '../triangulation/TriangulationView';
+import { BackupView } from './BackupView';
 
 interface WorkspaceProps {
   project: ProjectRecord;
   db: ProjectDB;
   onClose: () => void;
+  onLock: () => void;
 }
 
 type ViewId =
@@ -45,20 +49,18 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
-function ComingSoon({ label }: { label: string }) {
-  return (
-    <div>
-      <h1 className="app-title">{label}</h1>
-      <p className="app-subtitle">This section is being rebuilt and will land in a follow-up update.</p>
-    </div>
-  );
-}
-
-export function Workspace({ project, db, onClose }: WorkspaceProps) {
+export function Workspace({ project, db, onClose, onLock }: WorkspaceProps) {
   const [view, setView] = useState<ViewId>('transcripts');
   const [activeTranscriptId, setActiveTranscriptId] = useState<string | null>(null);
   const [activeObservationId, setActiveObservationId] = useState<string | null>(null);
   const [activeCanvasId, setActiveCanvasId] = useState<string | null>(null);
+  const [hasPassword, setHasPassword] = useState(false);
+
+  useEffect(() => {
+    void checkHasPassword(db).then(setHasPassword);
+  }, [db]);
+
+  useIdleLock(db, hasPassword, onLock);
 
   return (
     <ProjectStoreProvider db={db}>
@@ -95,7 +97,7 @@ export function Workspace({ project, db, onClose }: WorkspaceProps) {
         )}
         {view === 'codebook' && <CodebookView />}
         {view === 'triangulation' && <TriangulationView />}
-        {view === 'backup' && <ComingSoon label="Backup & Restore" />}
+        {view === 'backup' && <BackupView projectTitle={project.title} />}
         {view === 'settings' && <SettingsView projectTitle={project.title} />}
       </AppShell>
     </ProjectStoreProvider>

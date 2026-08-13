@@ -78,6 +78,7 @@ function App() {
             await refreshProjects();
             setScreen({ kind: 'switcher' });
           }}
+          onLock={() => setScreen({ kind: 'unlock', project: screen.project })}
         />
       )}
     </ToastProvider>
