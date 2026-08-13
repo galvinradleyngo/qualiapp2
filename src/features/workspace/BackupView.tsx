@@ -8,6 +8,8 @@ import { fileSet } from '../../storage/projectDb';
 import { useToast } from '../../ui/Toast';
 import { EMPTY_PROJECT_DATA, type ProjectData } from '../../data/types';
 
+const pluralize = (count: number, noun: string): string => `${count} ${noun}${count === 1 ? '' : 's'}`;
+
 export function BackupView({ projectTitle }: { projectTitle: string }) {
   const { db, data, set } = useProjectStore();
   const { notify } = useToast();
@@ -69,10 +71,14 @@ export function BackupView({ projectTitle }: { projectTitle: string }) {
     }
   };
 
-  const dataSummary = Object.entries(data)
-    .filter(([, v]) => Array.isArray(v))
-    .map(([k, v]) => `${k}: ${(v as unknown[]).length}`)
-    .join(' · ');
+  const dataSummary = [
+    pluralize(data.transcripts.length, 'transcript'),
+    pluralize(data.tags.length, 'code'),
+    pluralize(data.globalArtifacts.length, 'artifact'),
+    pluralize(data.observations.length, 'observation'),
+    pluralize(data.participants.length, 'participant'),
+    pluralize(data.analysisCanvases.length, 'analysis workspace'),
+  ].join(' · ');
 
   return (
     <div>

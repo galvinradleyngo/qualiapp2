@@ -55,7 +55,6 @@ export function ProjectSwitcher({ projects, loading, onOpenProject, onCreateProj
           <div className="flex-1">
             <TextField
               label="Project title"
-              className="sr-only-label"
               placeholder="e.g. Fall 2025 Interviews"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}

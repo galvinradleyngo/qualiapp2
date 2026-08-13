@@ -65,7 +65,8 @@ export function CodebookView() {
         <div>
           <h1 className="app-title">Codebook</h1>
           <p className="app-subtitle">
-            {uniqueCodeCount} unique codes and {uniqueCategoryCount} unique categories across transcripts, artifacts, and observations.
+            {uniqueCodeCount} unique {uniqueCodeCount === 1 ? 'code' : 'codes'} and {uniqueCategoryCount} unique{' '}
+            {uniqueCategoryCount === 1 ? 'category' : 'categories'} across transcripts, artifacts, and observations.
           </p>
         </div>
         <Button variant="secondary" onClick={exportGroupedCsv}>

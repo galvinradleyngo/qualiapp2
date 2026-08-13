@@ -169,7 +169,7 @@ export function TranscriptEditor({ transcriptId, onBack }: TranscriptEditorProps
 
       {mode === 'edit' && (
         <textarea
-          className="textarea min-h-[420px] w-full font-mono text-sm"
+          className="textarea min-h-[420px] w-full text-sm leading-relaxed"
           value={transcript.content}
           onChange={(e) => updateTranscript({ content: e.target.value })}
           placeholder="Paste or type the transcript text here…"

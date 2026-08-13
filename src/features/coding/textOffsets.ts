@@ -22,15 +22,38 @@ export interface SelectionOffsets {
   text: string;
 }
 
+/** Offset of a boundary point that may fall outside `container` (see getSelectionOffsets). */
+function boundaryOffset(container: HTMLElement, node: Node, nodeOffset: number, fullLength: number): number {
+  if (container.contains(node)) return textOffsetOf(container, node, nodeOffset);
+  const position = container.compareDocumentPosition(node);
+  if (position & Node.DOCUMENT_POSITION_PRECEDING) return 0;
+  if (position & Node.DOCUMENT_POSITION_FOLLOWING) return fullLength;
+  return fullLength;
+}
+
 export function getSelectionOffsets(container: HTMLElement): SelectionOffsets | null {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return null;
   const range = selection.getRangeAt(0);
-  if (!container.contains(range.commonAncestorContainer)) return null;
-  const text = selection.toString();
-  if (!text) return null;
-  const start = textOffsetOf(container, range.startContainer, range.startOffset);
-  const end = textOffsetOf(container, range.endContainer, range.endOffset);
+
+  // A triple-click ("select paragraph") extends the selection's end boundary
+  // into the start of the next DOM sibling when the paragraph is followed by
+  // another block — here, the sidebar column next to the coded text. Rather
+  // than reject the whole selection when only one boundary strays outside
+  // the container, clamp that boundary to the nearer edge of the container's
+  // own text instead of failing the selection outright.
+  if (!container.contains(range.startContainer) && !container.contains(range.endContainer)) return null;
+
+  const fullLength = container.textContent?.length ?? 0;
+  const start = boundaryOffset(container, range.startContainer, range.startOffset, fullLength);
+  const end = boundaryOffset(container, range.endContainer, range.endOffset, fullLength);
   if (start === end) return null;
-  return { start: Math.min(start, end), end: Math.max(start, end), text };
+
+  const lo = Math.min(start, end);
+  const hi = Math.max(start, end);
+  // Derive the snippet from the container's own text rather than
+  // selection.toString(), which can include that phantom trailing content.
+  const text = (container.textContent ?? '').slice(lo, hi);
+  if (!text) return null;
+  return { start: lo, end: hi, text };
 }
