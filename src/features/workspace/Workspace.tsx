@@ -6,6 +6,7 @@ import { ProjectStoreProvider } from './ProjectStore';
 import { SettingsView } from './SettingsView';
 import { TranscriptsDashboard } from '../transcripts/TranscriptsDashboard';
 import { TranscriptEditor } from '../transcripts/TranscriptEditor';
+import { CodebookView } from '../codebook/CodebookView';
 
 interface WorkspaceProps {
   project: ProjectRecord;
@@ -74,7 +75,7 @@ export function Workspace({ project, db, onClose }: WorkspaceProps) {
         {view === 'participants' && <ComingSoon label="Participant Vault" />}
         {view === 'analysis' && <ComingSoon label="Analysis Canvas" />}
         {view === 'connecting' && <ComingSoon label="Connecting Analysis" />}
-        {view === 'codebook' && <ComingSoon label="Codebook" />}
+        {view === 'codebook' && <CodebookView />}
         {view === 'triangulation' && <ComingSoon label="Triangulation" />}
         {view === 'backup' && <ComingSoon label="Backup & Restore" />}
         {view === 'settings' && <SettingsView projectTitle={project.title} />}
