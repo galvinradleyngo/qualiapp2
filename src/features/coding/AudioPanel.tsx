@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { AudioBookmark, AudioFileRef } from '../../data/types';
 import { fileGet, fileSet, type ProjectDB } from '../../storage/projectDb';
 import { Button } from '../../ui/Button';
+import { compressAudioIfPossible } from './audioCompression';
 
 interface AudioPanelProps {
   db: ProjectDB;
@@ -31,6 +32,7 @@ export function AudioPanel({
 }: AudioPanelProps) {
   const [activeTrackId, setActiveTrackId] = useState<string | null>(audioFiles[0]?.id ?? null);
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [compressingKeys, setCompressingKeys] = useState<Set<string>>(new Set());
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -38,9 +40,13 @@ export function AudioPanel({
     if (activeTrackId && !audioFiles.some((f) => f.id === activeTrackId)) setActiveTrackId(audioFiles[0]?.id ?? null);
   }, [audioFiles, activeTrackId]);
 
+  const activeKeyRef = useRef<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
   useEffect(() => {
     let revoked: string | null = null;
     const track = audioFiles.find((f) => f.id === activeTrackId);
+    activeKeyRef.current = track?.key ?? null;
     if (!track) {
       setObjectUrl(null);
       return;
@@ -54,7 +60,9 @@ export function AudioPanel({
     return () => {
       if (revoked) URL.revokeObjectURL(revoked);
     };
-  }, [db, activeTrackId, audioFiles]);
+    // reloadToken forces a re-fetch once background compression swaps in a
+    // smaller blob under the same key, without needing new audioFiles metadata.
+  }, [db, activeTrackId, audioFiles, reloadToken]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.playbackRate = playbackRate;
@@ -63,14 +71,37 @@ export function AudioPanel({
   const handleUpload = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
     const next = [...audioFiles];
+    const uploaded: Array<{ key: string; file: File }> = [];
     for (const file of Array.from(fileList)) {
       const id = newId();
       const key = `${keyPrefix}_${id}`;
+      // Store the raw file immediately — audio is usable right away, never
+      // blocked on compression, which can take as long as the recording itself.
       await fileSet(db, key, file, { name: file.name, lastModified: file.lastModified });
       next.push({ id, key, name: file.name });
+      uploaded.push({ key, file });
     }
     onChangeAudioFiles(next);
     if (!activeTrackId) setActiveTrackId(next[0]?.id ?? null);
+
+    for (const { key, file } of uploaded) void compressInBackground(key, file);
+  };
+
+  const compressInBackground = async (key: string, file: File) => {
+    setCompressingKeys((prev) => new Set(prev).add(key));
+    try {
+      const compressed = await compressAudioIfPossible(file);
+      if (compressed !== file) {
+        await fileSet(db, key, compressed, { name: compressed.name, lastModified: compressed.lastModified });
+        if (activeKeyRef.current === key) setReloadToken((t) => t + 1);
+      }
+    } finally {
+      setCompressingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
   };
 
   const handleRemoveActive = () => {
@@ -113,6 +144,11 @@ export function AudioPanel({
           <Button variant="danger" className="text-xs" onClick={handleRemoveActive}>
             Remove current
           </Button>
+        )}
+        {compressingKeys.size > 0 && (
+          <span className="text-xs text-ink-soft">
+            Optimizing {compressingKeys.size} file{compressingKeys.size === 1 ? '' : 's'} in the background…
+          </span>
         )}
       </div>
 
