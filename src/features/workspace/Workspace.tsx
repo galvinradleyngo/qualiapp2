@@ -7,6 +7,10 @@ import { SettingsView } from './SettingsView';
 import { TranscriptsDashboard } from '../transcripts/TranscriptsDashboard';
 import { TranscriptEditor } from '../transcripts/TranscriptEditor';
 import { CodebookView } from '../codebook/CodebookView';
+import { ArtifactsDashboard } from '../artifacts/ArtifactsDashboard';
+import { ObservationsDashboard } from '../observations/ObservationsDashboard';
+import { ObservationEditor } from '../observations/ObservationEditor';
+import { ParticipantVault } from '../participants/ParticipantVault';
 
 interface WorkspaceProps {
   project: ProjectRecord;
@@ -51,15 +55,17 @@ function ComingSoon({ label }: { label: string }) {
 export function Workspace({ project, db, onClose }: WorkspaceProps) {
   const [view, setView] = useState<ViewId>('transcripts');
   const [activeTranscriptId, setActiveTranscriptId] = useState<string | null>(null);
+  const [activeObservationId, setActiveObservationId] = useState<string | null>(null);
 
   return (
     <ProjectStoreProvider db={db}>
       <AppShell
         projectTitle={project.title}
         navItems={NAV_ITEMS}
-        activeNavId={activeTranscriptId ? 'transcripts' : view}
+        activeNavId={activeTranscriptId ? 'transcripts' : activeObservationId ? 'observations' : view}
         onNavigate={(id) => {
           setActiveTranscriptId(null);
+          setActiveObservationId(null);
           setView(id as ViewId);
         }}
         onCloseProject={onClose}
@@ -70,9 +76,14 @@ export function Workspace({ project, db, onClose }: WorkspaceProps) {
           ) : (
             <TranscriptsDashboard onOpenTranscript={setActiveTranscriptId} />
           ))}
-        {view === 'artifacts' && <ComingSoon label="Project Artifacts" />}
-        {view === 'observations' && <ComingSoon label="Onsite Observations" />}
-        {view === 'participants' && <ComingSoon label="Participant Vault" />}
+        {view === 'artifacts' && <ArtifactsDashboard />}
+        {view === 'observations' &&
+          (activeObservationId ? (
+            <ObservationEditor observationId={activeObservationId} onBack={() => setActiveObservationId(null)} />
+          ) : (
+            <ObservationsDashboard onOpenObservation={setActiveObservationId} />
+          ))}
+        {view === 'participants' && <ParticipantVault />}
         {view === 'analysis' && <ComingSoon label="Analysis Canvas" />}
         {view === 'connecting' && <ComingSoon label="Connecting Analysis" />}
         {view === 'codebook' && <CodebookView />}
