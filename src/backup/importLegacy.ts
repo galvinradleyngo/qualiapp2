@@ -7,7 +7,40 @@ import { createProjectRecord, type ProjectRecord } from '../storage/registry';
 import { dataSet, fileSet, openProjectDb } from '../storage/projectDb';
 import { SEC_APP_PIN_KEY, SEC_PARTICIPANT_PIN_KEY, SEC_RECOVERY_KEY } from '../storage/securityKeys';
 import { secPbkdf2Hash } from './crypto';
-import { parseLegacyBackup, type LegacyBackupPayload } from './legacyFormat';
+import { parseLegacyBackup, type LegacyBackupPayload, type LegacyFileEntry } from './legacyFormat';
+
+interface LegacyAudioTrackShape {
+  id?: string;
+  bookmarks?: unknown;
+  audioFiles?: unknown;
+  hasAudio?: boolean;
+}
+
+/**
+ * Legacy backups predate two fields the new app relies on: `bookmarks`
+ * (previously just inline HTML spans, never a discrete array) and, for
+ * transcripts recorded before multi-track audio existed, `audioFiles`
+ * (audio lived under a single fixed key `audio_<transcriptId>` instead).
+ * Without this, an imported transcript/observation missing `bookmarks`
+ * would crash the Editor the first time it renders the audio panel, and a
+ * legacy single-track transcript would silently lose access to its audio
+ * (the blob still exists in the imported files, just unreferenced).
+ */
+export function normalizeLegacyDocs(docs: unknown[] | undefined, files: LegacyFileEntry[], legacyAudioKey?: (doc: { id?: string }) => string): void {
+  if (!docs) return;
+  const fileByKey = new Map(files.map((f) => [f.key, f]));
+  for (const raw of docs) {
+    const doc = raw as LegacyAudioTrackShape & { id?: string };
+    if (!Array.isArray(doc.bookmarks)) doc.bookmarks = [];
+    if (Array.isArray(doc.audioFiles) && doc.audioFiles.length > 0) continue;
+    if (!Array.isArray(doc.audioFiles)) doc.audioFiles = [];
+    if (doc.hasAudio && legacyAudioKey) {
+      const key = legacyAudioKey(doc);
+      const file = fileByKey.get(key);
+      if (file) doc.audioFiles = [{ id: `${doc.id}_legacy_audio`, key, name: file.name ?? 'audio' }];
+    }
+  }
+}
 
 export interface ImportLegacyBackupOptions {
   file: Blob;
@@ -24,6 +57,9 @@ export async function importLegacyBackup({
   onProgress,
 }: ImportLegacyBackupOptions): Promise<ProjectRecord> {
   const payload = await parseLegacyBackup(file, password, onProgress);
+  normalizeLegacyDocs(payload.data.transcripts, payload.files, (doc) => `audio_${doc.id}`);
+  normalizeLegacyDocs(payload.data.observations, payload.files);
+
   const project = await createProjectRecord(projectTitle.trim() || 'Imported project');
   const db = openProjectDb(project.id);
 
