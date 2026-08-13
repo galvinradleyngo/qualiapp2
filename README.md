@@ -54,6 +54,11 @@ npm run build       # produces dist/index.html — the entire shippable app
 - **Backup & Restore** — encrypted, password-protected, project-scoped
   snapshots (current format), plus a decoder for every `.qbk` format the
   legacy app ever wrote so old backups always import.
+- **Rich text + Word export** — bold and interviewer-tag formatting in the
+  editor, drag-and-drop clustering in the Analysis Canvas, APA-formatted
+  Word (.doc) export everywhere CSV export exists, and audio compression
+  on upload — see "Reincorporated features" below for how each of these
+  was rebuilt with the original design risk addressed.
 
 ## Architecture
 
@@ -82,16 +87,9 @@ self-contained `dist/index.html` — no server, no install.
 
 ## Deliberate differences from the legacy app
 
-- **Plain-text transcript/observation editing**, not `contentEditable` rich
-  text — no bold/interviewer-tag spans, but also none of the HTML/offset
-  sync bugs that come with them. Audio timecodes are a discrete bookmark
-  list instead of inline HTML spans.
 - **Per-code colors** in coded-text highlighting (the legacy app highlighted
   every code the same flat teal); overlapping highlights render as a
   visible gradient instead of silently failing to render.
-- **Dropdown-based assignment** in the Analysis Canvas instead of native
-  HTML5 drag-and-drop (the legacy app's own category-drag handler called a
-  function that was never defined).
 - **Importing a triangulation assignment package creates a new project**
   instead of destructively overwriting whatever workspace happened to be
   open — this app has real multi-project isolation, so there's no reason to
@@ -99,7 +97,38 @@ self-contained `dist/index.html` — no server, no install.
 - **No file-optimization migration pass.** The legacy app had a one-time
   background job to compress already-stored files, needed only because
   uploads weren't compressed yet when it was built. This app compresses
-  images at upload time from the start, so that migration has nothing to
-  do and isn't ported.
-- Not yet ported: APA-formatted `.doc` exports (CSV export covers the same
-  data) and live audio re-encoding to Opus on upload.
+  files at upload time from the start (see "Reincorporated features"
+  below), so that migration has nothing to do and isn't ported.
+- Audio timecodes are a discrete bookmark list rather than inline HTML
+  spans in the transcript body — the one piece of legacy rich-text behavior
+  not brought back, since it was the actual source of the legacy app's
+  HTML/offset sync fragility (see below).
+
+## Reincorporated features
+
+Four things were initially simplified or cut during the rewrite, then
+deliberately rebuilt after weighing the trade-off explicitly:
+
+- **Rich text editing** (`src/features/coding/RichTextEditor.tsx`) — Bold
+  and "Tag Interviewer" formatting in the Transcript/Observation editor.
+  Both only ever wrap already-selected text (never insert/delete
+  characters), so the plain-text mirror used for in-vivo coding offsets
+  stays exactly consistent with what's displayed — Code mode never needs
+  to know formatting exists. Timecode bookmarks deliberately stay a
+  separate list rather than inline spans, since interleaving those with
+  formatting spans in the same HTML blob was the actual source of the
+  legacy app's offset fragility.
+- **Drag-and-drop** (`src/features/analysis/AssignmentBoard.tsx`) — added
+  alongside the dropdown (not replacing it) in the Analysis Canvas, for
+  clustering codes into categories and categories into themes.
+- **APA-formatted Word (.doc) export** (`src/features/workspace/docExport.ts`)
+  — wired in everywhere CSV export already exists: Codebook, Analysis
+  Canvas, Connecting Analysis (including the relational map as an embedded,
+  rasterized figure), and Triangulation.
+- **Audio compression on upload** (`src/features/coding/audioCompression.ts`)
+  — re-encodes to Opus/WebM via MediaRecorder capturing a live AudioContext
+  playback, always in the background so a long recording never blocks the
+  UI on encoding (compression runs in real time — a 45-minute interview
+  takes about 45 minutes to compress — which is exactly why it's
+  backgrounded rather than synchronous). Falls back to the original file on
+  any failure.
