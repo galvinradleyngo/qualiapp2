@@ -11,6 +11,7 @@ import { ArtifactsDashboard } from '../artifacts/ArtifactsDashboard';
 import { ObservationsDashboard } from '../observations/ObservationsDashboard';
 import { ObservationEditor } from '../observations/ObservationEditor';
 import { ParticipantVault } from '../participants/ParticipantVault';
+import { AnalysisBoardView } from '../analysis/AnalysisBoardView';
 
 interface WorkspaceProps {
   project: ProjectRecord;
@@ -56,6 +57,7 @@ export function Workspace({ project, db, onClose }: WorkspaceProps) {
   const [view, setView] = useState<ViewId>('transcripts');
   const [activeTranscriptId, setActiveTranscriptId] = useState<string | null>(null);
   const [activeObservationId, setActiveObservationId] = useState<string | null>(null);
+  const [activeCanvasId, setActiveCanvasId] = useState<string | null>(null);
 
   return (
     <ProjectStoreProvider db={db}>
@@ -84,8 +86,12 @@ export function Workspace({ project, db, onClose }: WorkspaceProps) {
             <ObservationsDashboard onOpenObservation={setActiveObservationId} />
           ))}
         {view === 'participants' && <ParticipantVault />}
-        {view === 'analysis' && <ComingSoon label="Analysis Canvas" />}
-        {view === 'connecting' && <ComingSoon label="Connecting Analysis" />}
+        {view === 'analysis' && (
+          <AnalysisBoardView panelMode="analysis" activeCanvasId={activeCanvasId} onActiveCanvasIdChange={setActiveCanvasId} />
+        )}
+        {view === 'connecting' && (
+          <AnalysisBoardView panelMode="connecting" activeCanvasId={activeCanvasId} onActiveCanvasIdChange={setActiveCanvasId} />
+        )}
         {view === 'codebook' && <CodebookView />}
         {view === 'triangulation' && <ComingSoon label="Triangulation" />}
         {view === 'backup' && <ComingSoon label="Backup & Restore" />}
