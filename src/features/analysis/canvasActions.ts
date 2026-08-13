@@ -204,6 +204,26 @@ export function useCanvasActions() {
     [updateCanvas],
   );
 
+  const setThemeExplanation = useCallback(
+    (canvasId: string, themeId: string, explanation: string) =>
+      updateCanvas(canvasId, (c) => ({ ...c, themes: c.themes.map((t) => (t.id === themeId ? { ...t, explanation } : t)) })),
+    [updateCanvas],
+  );
+
+  /** Creates a theme pre-populated with a set of categories (e.g. a node's
+   * connected cluster from the relational map) in one step. */
+  const createThemeFromCategories = useCallback(
+    (canvasId: string, name: string, categoryNames: string[], explanation?: string): string => {
+      const id = newId();
+      updateCanvas(canvasId, (c) => ({
+        ...c,
+        themes: [...c.themes, { id, name: name.trim() || 'New theme', categories: Array.from(new Set(categoryNames)), explanation }],
+      }));
+      return id;
+    },
+    [updateCanvas],
+  );
+
   const setConnection = useCallback(
     (canvasId: string, rowCode: string, colCode: string, value: 0 | 1) =>
       updateCanvas(canvasId, (c) => ({
@@ -251,6 +271,8 @@ export function useCanvasActions() {
     renameTheme,
     assignCategoryToTheme,
     unassignCategoryFromTheme,
+    setThemeExplanation,
+    createThemeFromCategories,
     setConnection,
     setConnectionRationale,
     setConnectionNote,

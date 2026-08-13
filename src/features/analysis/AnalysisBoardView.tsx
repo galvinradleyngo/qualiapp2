@@ -228,6 +228,10 @@ export function AnalysisBoardView({ panelMode, activeCanvasId, onActiveCanvasIdC
           onSetConnection={(row, col, value) => actions.setConnection(canvas.id, row, col, value)}
           onSetRationale={(row, col, rationale) => actions.setConnectionRationale(canvas.id, row, col, rationale)}
           onSetNote={(code, note) => actions.setConnectionNote(canvas.id, code, note)}
+          onCreateTheme={(name, categoryNames, explanation) => actions.createThemeFromCategories(canvas.id, name, categoryNames, explanation)}
+          onRenameTheme={(themeId, name) => actions.renameTheme(canvas.id, themeId, name)}
+          onSetThemeExplanation={(themeId, explanation) => actions.setThemeExplanation(canvas.id, themeId, explanation)}
+          onRemoveTheme={(themeId) => actions.removeTheme(canvas.id, themeId)}
         />
       )}
     </div>

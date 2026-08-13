@@ -137,6 +137,9 @@ export interface AnalysisTheme {
   id: string;
   name: string;
   categories: string[];
+  /** Free-text rationale for why these categories form one theme — optional,
+   * since not every category cluster needs a written narrative to be useful. */
+  explanation?: string;
 }
 
 export type ConnectionRationale = 'A' | 'B' | 'C' | '';

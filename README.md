@@ -47,8 +47,12 @@ npm run build       # produces dist/index.html — the entire shippable app
 - **Analysis Canvas** — cluster in-vivo codes into categories (Step 2), then
   categories into themes (Step 3).
 - **Connecting Analysis** — a guided pairwise prompt for how categories
-  relate, a clickable matrix, a narrative table, and a force-directed
-  relational map.
+  relate, a clickable matrix, an optional per-category narrative table, and
+  a force-directed relational map where more-connected categories cluster
+  visibly apart from unrelated ones. Clicking a category fades everything
+  outside its connected cluster and opens a popup to name and explain that
+  cluster as a theme, saved into a Themes section shared with Step 3's
+  Thematic Analysis.
 - **Triangulation** — export a blinded copy of a project for a second coder,
   import their return package, and see heuristic overlap-agreement stats.
 - **Backup & Restore** — encrypted, password-protected, project-scoped
