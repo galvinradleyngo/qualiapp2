@@ -6,6 +6,7 @@ import { listSourceItems } from '../workspace/sourceItems';
 import { useSourceSelection } from '../workspace/useSourceSelection';
 import { SourceFilterPanel } from '../workspace/SourceFilterPanel';
 import { downloadCsv } from '../workspace/csvExport';
+import { apaTableHtml, downloadWordDoc } from '../workspace/docExport';
 import { Button } from '../../ui/Button';
 import { colorForLabel } from '../../ui/codeColors';
 import { buildCodebookRows, sourceCount } from './aggregate';
@@ -59,6 +60,23 @@ export function CodebookView() {
     );
   };
 
+  const exportApaDoc = () => {
+    const usageRows = filteredRows
+      .filter((r) => r.code)
+      .map((r) => [r.category, r.code, String(r.quoteCount), String(sourceCount(r)), r.quotes[0] ?? '']);
+    const defRows = (names: string[], defs: Record<string, CodeDefinitionRecord>) =>
+      names.map((name) => {
+        const d = defs[name];
+        return [name, d?.definition || '—', d?.inclusion || '—', d?.exclusion || '—'];
+      });
+    const html = [
+      apaTableHtml(1, 'Codebook Usage Summary', ['Category', 'Code', 'Quote Count', 'Source Count', 'Sample Quote'], usageRows),
+      apaTableHtml(2, 'Code Definitions', ['Code', 'Definition', 'Inclusion Criteria', 'Exclusion Criteria'], defRows(codeNames, data.codeDefinitions)),
+      apaTableHtml(3, 'Category Definitions', ['Category', 'Definition', 'Inclusion Criteria', 'Exclusion Criteria'], defRows(categoryNames, data.categoryDefinitions)),
+    ].join('');
+    downloadWordDoc('codebook.doc', html, 'Codebook');
+  };
+
   return (
     <div>
       <div className="mb-6 flex items-start justify-between">
@@ -69,9 +87,14 @@ export function CodebookView() {
             {uniqueCategoryCount === 1 ? 'category' : 'categories'} across transcripts, artifacts, and observations.
           </p>
         </div>
-        <Button variant="secondary" onClick={exportGroupedCsv}>
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={exportGroupedCsv}>
+            Export CSV
+          </Button>
+          <Button variant="secondary" onClick={exportApaDoc}>
+            Export Word (.doc)
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4">

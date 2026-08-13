@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { AnalysisCanvas, ConnectionRationale } from '../../data/types';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { downloadCsv } from '../workspace/csvExport';
+import { apaFigureHtml, apaTableHtml, downloadWordDoc } from '../workspace/docExport';
 import { computeForceDirectedLayout, degreeTier, RATIONALE_STYLES, TIER_COLORS } from './forceLayout';
+import { renderSvgToPngDataUrl } from './svgToPng';
 
 interface ConnectingStepProps {
   canvas: AnalysisCanvas;
@@ -31,6 +33,8 @@ export function ConnectingStep({ canvas, onSetConnection, onSetRationale, onSetN
   const [pairIndex, setPairIndex] = useState(0);
   const [showMap, setShowMap] = useState(false);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [exportingFigure, setExportingFigure] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   const answeredCount = pairs.filter(([a, b]) => canvas.connections[a]?.[b] !== undefined).length;
   const progress = Math.round((answeredCount / pairs.length) * 100);
@@ -40,10 +44,59 @@ export function ConnectingStep({ canvas, onSetConnection, onSetRationale, onSetN
   const currentValue = currentPair ? canvas.connections[currentPair[0]]?.[currentPair[1]] : undefined;
   const currentRationale = currentPair ? canvas.connectionRationales[currentPair[0]]?.[currentPair[1]] ?? '' : '';
 
-  const exportMatrixCsv = () => {
+  const matrixRows = () => {
     const header = ['', ...categories.map((c) => c.code)];
     const rows = categories.map((row) => [row.code, ...categories.map((col) => String(row.code === col.code ? 1 : canvas.connections[row.code]?.[col.code] ?? ''))]);
+    return { header, rows };
+  };
+
+  const exportMatrixCsv = () => {
+    const { header, rows } = matrixRows();
     downloadCsv(`${canvas.name}-connecting-matrix.csv`, [header, ...rows]);
+  };
+
+  const exportMatrixDoc = () => {
+    const { header, rows } = matrixRows();
+    downloadWordDoc(
+      `${canvas.name}-connecting-matrix.doc`,
+      apaTableHtml(1, `Connecting Matrix — ${canvas.name}`, header, rows, 'Cell values: 1 = connected, 0 = not connected, blank = not yet reviewed.'),
+      'Connecting Matrix',
+    );
+  };
+
+  const narrativeRows = () =>
+    categories.map((cat) => {
+      const connected = Object.entries(canvas.connections[cat.code] ?? {})
+        .filter(([, v]) => v === 1)
+        .map(([code]) => code);
+      return [cat.code, cat.name, connected.join(', ') || '—', canvas.connectionNotes[cat.code] || '—'];
+    });
+
+  const exportNarrativeCsv = () => {
+    downloadCsv(`${canvas.name}-narrative.csv`, [['Code', 'Category', 'Connected to', 'Notes'], ...narrativeRows()]);
+  };
+
+  const exportNarrativeDoc = () => {
+    downloadWordDoc(
+      `${canvas.name}-narrative.doc`,
+      apaTableHtml(2, `Narrative Table — ${canvas.name}`, ['Code', 'Category', 'Connected To', 'Notes'], narrativeRows()),
+      'Narrative Table',
+    );
+  };
+
+  const exportFigureDoc = async () => {
+    if (!svgRef.current) return;
+    setExportingFigure(true);
+    try {
+      const pngDataUrl = await renderSvgToPngDataUrl(svgRef.current);
+      downloadWordDoc(
+        `${canvas.name}-relational-map.doc`,
+        apaFigureHtml(1, `Relational Map — ${canvas.name}`, pngDataUrl, 'Node color reflects connectivity tier; edge style reflects connection rationale.'),
+        'Relational Map',
+      );
+    } finally {
+      setExportingFigure(false);
+    }
   };
 
   const edges = categories.flatMap((a) =>
@@ -111,7 +164,19 @@ export function ConnectingStep({ canvas, onSetConnection, onSetRationale, onSetN
         )}
       </Card>
 
-      <Card title="One-mode network table" actions={<Button variant="secondary" onClick={exportMatrixCsv}>Export CSV</Button>}>
+      <Card
+        title="One-mode network table"
+        actions={
+          <div className="flex gap-2">
+            <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportMatrixCsv}>
+              Export CSV
+            </Button>
+            <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportMatrixDoc}>
+              Export Word (.doc)
+            </Button>
+          </div>
+        }
+      >
         <div className="overflow-x-auto">
           <table className="text-sm">
             <thead>
@@ -155,7 +220,19 @@ export function ConnectingStep({ canvas, onSetConnection, onSetRationale, onSetN
         </div>
       </Card>
 
-      <Card title="Narrative table">
+      <Card
+        title="Narrative table"
+        actions={
+          <div className="flex gap-2">
+            <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportNarrativeCsv}>
+              Export CSV
+            </Button>
+            <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportNarrativeDoc}>
+              Export Word (.doc)
+            </Button>
+          </div>
+        }
+      >
         <div className="flex flex-col gap-3">
           {categories.map((cat) => {
             const connectedCodes = Object.entries(canvas.connections[cat.code] ?? {}).filter(([, v]) => v === 1).map(([code]) => code);
@@ -179,13 +256,22 @@ export function ConnectingStep({ canvas, onSetConnection, onSetRationale, onSetN
         </div>
       </Card>
 
-      <Card title="Relational map">
+      <Card
+        title="Relational map"
+        actions={
+          showMap && (
+            <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportFigureDoc} disabled={exportingFigure}>
+              {exportingFigure ? 'Exporting…' : 'Export figure (.doc)'}
+            </Button>
+          )
+        }
+      >
         {!showMap ? (
           <Button variant="secondary" onClick={() => setShowMap(true)}>
             Visualize connections
           </Button>
         ) : (
-          <svg width={640} height={420} className="max-w-full rounded-lg border border-border bg-white">
+          <svg ref={svgRef} width={640} height={420} className="max-w-full rounded-lg border border-border bg-white">
             {edges.map((e, i) => {
               const a = layout.get(e.source);
               const b = layout.get(e.target);

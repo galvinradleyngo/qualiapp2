@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { TriangulationSession } from '../../data/types';
 import { useProjectStore } from '../workspace/ProjectStore';
 import { downloadCsv } from '../workspace/csvExport';
+import { apaTableHtml, downloadWordDoc } from '../workspace/docExport';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { useToast } from '../../ui/Toast';
@@ -99,21 +100,30 @@ export function TriangulationView() {
     [data.triangulationSessions, data.tags, data.analysisCanvases, data.globalArtifacts, threshold],
   );
 
-  const exportCsv = () => {
-    downloadCsv('triangulation-agreement.csv', [
-      ['Coder', 'Imported at', 'Agreement %', 'Co-rater tags', 'Matched', 'Primary only', 'Co-rater only', 'Shared themes', 'Shared artifact codes'],
-      ...sessionStats.map(({ session, stats }) => [
-        session.coderId,
-        session.importedAt,
-        String(stats.agreementPct),
-        String(session.tags.length),
-        String(stats.matched),
-        String(stats.primaryOnly),
-        String(stats.coOnly),
-        String(stats.sharedThemes),
-        String(stats.sharedArtifactCodes),
-      ]),
+  const agreementRows = () =>
+    sessionStats.map(({ session, stats }) => [
+      session.coderId,
+      session.importedAt,
+      String(stats.agreementPct),
+      String(session.tags.length),
+      String(stats.matched),
+      String(stats.primaryOnly),
+      String(stats.coOnly),
+      String(stats.sharedThemes),
+      String(stats.sharedArtifactCodes),
     ]);
+  const agreementHeaders = ['Coder', 'Imported at', 'Agreement %', 'Co-rater tags', 'Matched', 'Primary only', 'Co-rater only', 'Shared themes', 'Shared artifact codes'];
+
+  const exportCsv = () => {
+    downloadCsv('triangulation-agreement.csv', [agreementHeaders, ...agreementRows()]);
+  };
+
+  const exportDoc = () => {
+    downloadWordDoc(
+      'triangulation-agreement.doc',
+      apaTableHtml(1, 'Triangulation Agreement Summary', agreementHeaders, agreementRows(), 'Overlap Agreement % is a heuristic metric for calibration only; it is not a formal chance-corrected inter-rater reliability statistic.'),
+      'Triangulation Agreement',
+    );
   };
 
   return (
@@ -154,9 +164,14 @@ export function TriangulationView() {
       <Card
         title="Agreement analysis"
         actions={
-          <Button variant="secondary" onClick={exportCsv} disabled={sessionStats.length === 0}>
-            Export CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={exportCsv} disabled={sessionStats.length === 0}>
+              Export CSV
+            </Button>
+            <Button variant="secondary" onClick={exportDoc} disabled={sessionStats.length === 0}>
+              Export Word (.doc)
+            </Button>
+          </div>
         }
       >
         <div className="mb-4 flex items-center gap-3">

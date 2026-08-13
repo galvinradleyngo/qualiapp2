@@ -9,6 +9,8 @@ import { AssignmentBoard } from './AssignmentBoard';
 import { ConnectingStep } from './ConnectingStep';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
+import { downloadCsv } from '../workspace/csvExport';
+import { apaTableHtml, downloadWordDoc } from '../workspace/docExport';
 
 interface AnalysisBoardViewProps {
   panelMode: 'analysis' | 'connecting';
@@ -32,6 +34,36 @@ export function AnalysisBoardView({ panelMode, activeCanvasId, onActiveCanvasIdC
     const id = await actions.createCanvas(newCanvasName.trim());
     onActiveCanvasIdChange(id);
     setNewCanvasName('');
+  };
+
+  const clusteringRows = (c: NonNullable<typeof canvas>) =>
+    c.categories.map((cat) => [cat.code, cat.name, cat.codes.join(', ') || '—', String(cat.codes.length)]);
+  const thematicRows = (c: NonNullable<typeof canvas>) =>
+    c.themes.map((t) => [t.name, t.categories.join(', ') || '—', String(t.categories.length)]);
+
+  const exportClusteringCsv = () => {
+    if (!canvas) return;
+    downloadCsv(`${canvas.name}-clustering.csv`, [['Code', 'Category name', 'Assigned codes', 'Code count'], ...clusteringRows(canvas)]);
+  };
+  const exportClusteringDoc = () => {
+    if (!canvas) return;
+    downloadWordDoc(
+      `${canvas.name}-clustering.doc`,
+      apaTableHtml(1, `Clustering Table — ${canvas.name}`, ['Code', 'Category', 'Assigned Codes', 'Count'], clusteringRows(canvas)),
+      'Clustering Table',
+    );
+  };
+  const exportThematicCsv = () => {
+    if (!canvas) return;
+    downloadCsv(`${canvas.name}-thematic.csv`, [['Theme', 'Assigned categories', 'Category count'], ...thematicRows(canvas)]);
+  };
+  const exportThematicDoc = () => {
+    if (!canvas) return;
+    downloadWordDoc(
+      `${canvas.name}-thematic.doc`,
+      apaTableHtml(1, `Thematic Table — ${canvas.name}`, ['Theme', 'Assigned Categories', 'Count'], thematicRows(canvas)),
+      'Thematic Table',
+    );
   };
 
   return (
@@ -134,7 +166,17 @@ export function AnalysisBoardView({ panelMode, activeCanvasId, onActiveCanvasIdC
 
           {(step === 'both' || step === 'step2') && (
             <div className="mb-8">
-              <h2 className="mb-3 text-base font-semibold text-ink">Step 2 — Clustering</h2>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-ink">Step 2 — Clustering</h2>
+                <div className="flex gap-2">
+                  <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportClusteringCsv} disabled={canvas.categories.length === 0}>
+                    Export CSV
+                  </Button>
+                  <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportClusteringDoc} disabled={canvas.categories.length === 0}>
+                    Export Word (.doc)
+                  </Button>
+                </div>
+              </div>
               <AssignmentBoard
                 unassignedTitle="Unassigned in-vivo codes"
                 unassignedItems={Array.from(codeDetails.values()).map((d) => ({
@@ -155,7 +197,17 @@ export function AnalysisBoardView({ panelMode, activeCanvasId, onActiveCanvasIdC
 
           {(step === 'both' || step === 'step3') && (
             <div>
-              <h2 className="mb-3 text-base font-semibold text-ink">Step 3 — Thematic Analysis</h2>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-ink">Step 3 — Thematic Analysis</h2>
+                <div className="flex gap-2">
+                  <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportThematicCsv} disabled={canvas.themes.length === 0}>
+                    Export CSV
+                  </Button>
+                  <Button variant="secondary" className="px-3 py-1 text-xs" onClick={exportThematicDoc} disabled={canvas.themes.length === 0}>
+                    Export Word (.doc)
+                  </Button>
+                </div>
+              </div>
               <AssignmentBoard
                 unassignedTitle="Unassigned categories"
                 unassignedItems={canvas.categories.map((c) => ({ key: c.name, label: `${c.code} ${c.name}`, meta: `${c.codes.length} code${c.codes.length === 1 ? '' : 's'}` }))}
